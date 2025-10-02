@@ -1,27 +1,25 @@
-[gd_scene load_steps=10 format=3 uid="uid://dst86g5hs6n7f"]
+[gd_scene load_steps=4 format=3 uid="uid://dst86g5hs6n7f"]
 
 [ext_resource type="Script" uid="uid://dpupr2fbmk1vk" path="res://Assets/Scripts/Unit.cs" id="1_h75yp"]
-[ext_resource type="Texture2D" uid="uid://c04xad2onf0of" path="res://Assets/Sprites/Fish Pack/All PNGS/fish_blue.png" id="2_df7qt"]
-[ext_resource type="Texture2D" uid="uid://pbh5r5rdtsh2" path="res://Assets/Sprites/Fish Pack/All PNGS/fish_red.png" id="2_xoaow"]
-[ext_resource type="Texture2D" uid="uid://x7d81ign3axs" path="res://Assets/Sprites/Fish Pack/All PNGS/fish_brown.png" id="3_rxr6j"]
-[ext_resource type="Texture2D" uid="uid://dum1ey68uufpp" path="res://Assets/Sprites/Fish Pack/All PNGS/fish_green.png" id="4_xars8"]
-[ext_resource type="Texture2D" uid="uid://ckwdkwvkus8pg" path="res://Assets/Sprites/Fish Pack/All PNGS/fish_grey.png" id="5_j1lny"]
-[ext_resource type="Texture2D" uid="uid://bgv0y00n5fqdd" path="res://Assets/Sprites/Fish Pack/All PNGS/fish_orange.png" id="6_jj6mo"]
-[ext_resource type="Texture2D" uid="uid://clvnjs6avvvs2" path="res://Assets/Sprites/Fish Pack/All PNGS/fish_pink.png" id="7_vhgmv"]
+[ext_resource type="Texture2D" uid="uid://pbh5r5rdtsh2" path="res://Assets/Sprites/Fishes/No Outline/fish_red.png" id="2_xoaow"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_xoaow"]
-radius = 166.68
+radius = 70.028564
 
 [node name="Boid" type="CharacterBody2D"]
 script = ExtResource("1_h75yp")
-SpriteOptions = Array[Texture2D]([ExtResource("2_df7qt"), ExtResource("3_rxr6j"), ExtResource("4_xars8"), ExtResource("5_j1lny"), ExtResource("6_jj6mo"), ExtResource("7_vhgmv"), ExtResource("2_xoaow")])
+_avoidanceRadius = 90.0
+_repulsionStrength = 3.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_xoaow")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 
-[node name="RepulsionArea2D" type="Area2D" parent="."]
+[node name="Area2D" type="Area2D" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RepulsionArea2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("CircleShape2D_xoaow")
+
+[connection signal="body_entered" from="Area2D" to="." method="OnUnitEntered"]
+[connection signal="body_exited" from="Area2D" to="." method="OnUnitExited"]

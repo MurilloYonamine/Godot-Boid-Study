@@ -1,27 +1,30 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Unit : CharacterBody2D
 {
 	// === NAVIGATION COMPONENTS ===
 	private NavigationAgent2D _agent;
 	private Vector2 _targetPosition;
-	private Rid _navigationMap;
 
 	// === MOVEMENT SETTINGS ===
 	[Export] private float _speed = 300f;
-	private bool _isAutoMoving = true;
-	private Vector2 _autoDirection = Vector2.Right;
+	private UnitMovement _unitMovement;
 
 	// === VISUAL COMPONENTS ===
 	private Sprite2D _sprite2D;
-	[Export] public Texture2D[] SpriteOptions;
-
-	// === SPAWN AREA DATA ===
-	public Area2D SpawnArea { get; set; }
-	private RectangleShape2D _spawnShape;
-	private Vector2 _spawnAreaCenter;
-	private Vector2 _spawnAreaSize;
+	private SpriteManager _spriteManager;
+	
+	// === BOID AVOIDANCE ===
+	private Area2D _avoidanceArea;
+	private List<Unit> _nearbyUnits = new List<Unit>();
+	private const float INTERVAL_TIMER = 0.2f;
+	private float _avoidanceTimer = 0f;
+	private Vector2 _avoidanceDirection = Vector2.Zero;
+	[Export] private float _avoidanceRadius = 60f;
+	[Export] private float _repulsionStrength = 1.0f;
+	private BoidBehavior _boidBehavior;
 
 	public override void _Ready()
 	{
@@ -29,22 +32,40 @@ public partial class Unit : CharacterBody2D
 		_agent = GetNode<NavigationAgent2D>("NavigationAgent2D");
 		_targetPosition = GlobalPosition;
 
+		// Initialize movement
+		_unitMovement = new UnitMovement(this, _agent, _sprite2D, _speed);
+		_unitMovement.SetRandomDirection();
+
+		// Initialize sprite manager
+		_spriteManager = new SpriteManager();
+		_spriteManager.LoadSprites();
 		AssignRandomSprite();
 
-		_spawnShape = SpawnArea.GetNode<CollisionShape2D>("CollisionShape2D").Shape as RectangleShape2D;
-		_spawnAreaSize = _spawnShape.Size;
-		_spawnAreaCenter = SpawnArea.GlobalPosition;
-
-		_navigationMap = GetWorld2D().NavigationMap;
+		// Initialize boid behavior
+		_boidBehavior = new BoidBehavior(_repulsionStrength, _avoidanceRadius);
 	}
 
-	private void AssignRandomSprite()
+	public override void _PhysicsProcess(double delta)
 	{
-		if (SpriteOptions.Length > 0)
+		_avoidanceTimer += (float)delta;
+		
+		if (_avoidanceTimer >= INTERVAL_TIMER)
 		{
-			int index = (int)(GD.Randi() % SpriteOptions.Length);
-			_sprite2D.Texture = SpriteOptions[index];
+			CalculateAvoidance();
+			_avoidanceTimer = 0f;
 		}
+		
+		_unitMovement.HandleMovement();
+	}
+
+	private void CalculateAvoidance()
+	{
+		_avoidanceDirection = _boidBehavior.CalculateAvoidanceVector(GlobalPosition, _nearbyUnits);
+	}
+
+	public Vector2 GetAvoidanceDirection()
+	{
+		return _avoidanceDirection;
 	}
 
 	public override void _Input(InputEvent @event)
@@ -52,54 +73,37 @@ public partial class Unit : CharacterBody2D
 		// Handle mouse click for manual navigation
 		if (@event is InputEventMouseButton mouseEvent && !mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Left)
 		{
-			Vector2 point = NavigationServer2D.MapGetClosestPoint(_navigationMap, GetGlobalMousePosition());
-			_agent.TargetPosition = point;
-			_isAutoMoving = false;
+			_unitMovement.HandleMouseNavigation(GetGlobalMousePosition());
 		}
 	}
-
-	public override void _PhysicsProcess(double delta)
+	private void OnUnitEntered(Node2D body)
 	{
-		if (_isAutoMoving)
+		if (body is Unit unit && unit != this)
 		{
-			Rect2 areaRect = new Rect2(_spawnAreaCenter - _spawnAreaSize / 2, _spawnAreaSize);
-
-			Velocity = _autoDirection * _speed;
-			MoveAndSlide();
-
-			if (!areaRect.HasPoint(GlobalPosition))
-			{
-				_autoDirection = -_autoDirection;
-			}
-
-			_sprite2D.FlipH = _autoDirection == Vector2.Left;
-		}
-		else
-		{
-			if (_agent.IsNavigationFinished())
-			{
-				Velocity = Vector2.Zero;
-				Vector2 newTarget = GetRandomPositionInSpawnArea();
-				Vector2 point = NavigationServer2D.MapGetClosestPoint(_navigationMap, newTarget);
-				_agent.TargetPosition = point;
-				return;
-			}
-
-			LookAt(_agent.GetNextPathPosition());
-			Vector2 difference = _agent.GetNextPathPosition() - GlobalPosition;
-			Vector2 direction = difference.Normalized();
-			Velocity = direction * _speed;
-			MoveAndSlide();
+			_nearbyUnits.Add(unit);
 		}
 	}
 
-	private Vector2 GetRandomPositionInSpawnArea()
+	private void OnUnitExited(Node2D body)
 	{
-		return _spawnAreaCenter + new Vector2(
-			(float)GD.RandRange(-_spawnAreaSize.X / 2, _spawnAreaSize.X / 2),
-			(float)GD.RandRange(-_spawnAreaSize.Y / 2, _spawnAreaSize.Y / 2)
-		);
+		if (body is Unit unit)
+		{
+			_nearbyUnits.Remove(unit);
+		}
 	}
-	public void SetAutoDirection(Vector2 direction) => _autoDirection = direction.Normalized();
-	public void SetAutoMoving(bool value) => _isAutoMoving = value;
+
+	private void AssignRandomSprite()
+	{
+		Texture2D sprite = _spriteManager.GetRandomSprite();
+		if (sprite == null) return;
+		_sprite2D.Texture = sprite;
+	}
+
+	// Public methods that delegate to MovementManager
+	public void SetAutoDirection(Vector2 direction) => _unitMovement?.SetAutoDirection(direction);
+	public void SetAutoMoving(bool value) => _unitMovement?.SetAutoMoving(value);
+	public void InitializeMovementArea(Vector2 movementArea, Vector2 spawnAreaCenter)
+	{
+		_unitMovement?.InitializeMovementArea(movementArea, spawnAreaCenter);
+	}
 }

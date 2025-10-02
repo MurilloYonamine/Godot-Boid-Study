@@ -580,11 +580,11 @@ navigation_polygon = SubResource("NavigationPolygon_wiojp")
 [node name="Spawner" type="Node2D" parent="." node_paths=PackedStringArray("_spawnArea")]
 script = ExtResource("3_4hes5")
 _unitScene = ExtResource("2_4hes5")
-_spawnCount = 5
+_spawnCount = 35
 _spawnArea = NodePath("Area2D")
 
 [node name="Area2D" type="Area2D" parent="Spawner"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Spawner/Area2D"]
-position = Vector2(-4, -184)
+position = Vector2(0, -184)
 shape = SubResource("RectangleShape2D_4hes5")
