@@ -57,10 +57,8 @@ public class UnitMovement
 		// Get avoidance direction from boids
 		Vector2 avoidanceForce = Vector2.Zero;
 		if (_unitReference != null)
-		{
-			avoidanceForce = _unitReference.GetAvoidanceDirection();
-		}
-
+			avoidanceForce = _unitReference.AvoidanceDirection;
+			
 		// Combine movement direction with avoidance (smooth blending)
 		Vector2 combinedDirection = _autoDirection + avoidanceForce * 0.5f; // Reduce avoidance strength
 		combinedDirection = combinedDirection.Normalized();
@@ -121,9 +119,7 @@ public class UnitMovement
 		// Apply boid avoidance even during navigation
 		Vector2 avoidanceForce = Vector2.Zero;
 		if (_unitReference != null)
-		{
-			avoidanceForce = _unitReference.GetAvoidanceDirection();
-		}
+			avoidanceForce = _unitReference.AvoidanceDirection;
 
 		// Blend navigation with avoidance
 		Vector2 combinedDirection = (direction + avoidanceForce * 0.3f).Normalized();

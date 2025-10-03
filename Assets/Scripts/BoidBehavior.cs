@@ -40,14 +40,4 @@ public class BoidBehavior
         // Multiply by the repulsion strength
         return avoidanceDirection * _repulsionStrength;
     }
-
-    public void SetRepulsionStrength(float strength)
-    {
-        _repulsionStrength = strength;
-    }
-
-    public void SetDetectionRadius(float radius)
-    {
-        _detectionRadius = radius;
-    }
 }

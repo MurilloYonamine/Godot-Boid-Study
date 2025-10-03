@@ -15,16 +15,21 @@ public partial class Unit : CharacterBody2D
 	// === VISUAL COMPONENTS ===
 	private Sprite2D _sprite2D;
 	private SpriteManager _spriteManager;
-	
+
 	// === BOID AVOIDANCE ===
 	private Area2D _avoidanceArea;
-	private List<Unit> _nearbyUnits = new List<Unit>();
+	public List<Unit> NearbyUnits { get; private set; } = new List<Unit>();
+	public Vector2 AvoidanceDirection { get; private set; } = Vector2.Zero;
+	public float AvoidanceRadius { get; private set; } = 60f;
+
 	private const float INTERVAL_TIMER = 0.2f;
 	private float _avoidanceTimer = 0f;
-	private Vector2 _avoidanceDirection = Vector2.Zero;
-	[Export] private float _avoidanceRadius = 60f;
+
 	[Export] private float _repulsionStrength = 1.0f;
 	private BoidBehavior _boidBehavior;
+
+	// === DEBUG VISUALIZATION ===
+	private DebugUnitDrawer _debugDrawer;
 
 	public override void _Ready()
 	{
@@ -32,63 +37,80 @@ public partial class Unit : CharacterBody2D
 		_agent = GetNode<NavigationAgent2D>("NavigationAgent2D");
 		_targetPosition = GlobalPosition;
 
-		// Initialize movement
 		_unitMovement = new UnitMovement(this, _agent, _sprite2D, _speed);
 		_unitMovement.SetRandomDirection();
 
-		// Initialize sprite manager
 		_spriteManager = new SpriteManager();
 		_spriteManager.LoadSprites();
 		AssignRandomSprite();
 
-		// Initialize boid behavior
-		_boidBehavior = new BoidBehavior(_repulsionStrength, _avoidanceRadius);
+		_boidBehavior = new BoidBehavior(_repulsionStrength, AvoidanceRadius);
+
+		SetupAvoidanceArea();
+
+		_debugDrawer = new DebugUnitDrawer();
+		AddChild(_debugDrawer);
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		_avoidanceTimer += (float)delta;
-		
+
 		if (_avoidanceTimer >= INTERVAL_TIMER)
 		{
 			CalculateAvoidance();
 			_avoidanceTimer = 0f;
 		}
-		
+
 		_unitMovement.HandleMovement();
 	}
 
 	private void CalculateAvoidance()
 	{
-		_avoidanceDirection = _boidBehavior.CalculateAvoidanceVector(GlobalPosition, _nearbyUnits);
-	}
-
-	public Vector2 GetAvoidanceDirection()
-	{
-		return _avoidanceDirection;
+		AvoidanceDirection = _boidBehavior.CalculateAvoidanceVector(GlobalPosition, NearbyUnits);
 	}
 
 	public override void _Input(InputEvent @event)
 	{
-		// Handle mouse click for manual navigation
 		if (@event is InputEventMouseButton mouseEvent && !mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Left)
 		{
 			_unitMovement.HandleMouseNavigation(GetGlobalMousePosition());
 		}
 	}
-	private void OnUnitEntered(Node2D body)
+	private void SetupAvoidanceArea()
 	{
-		if (body is Unit unit && unit != this)
+		_avoidanceArea = new Area2D();
+		_avoidanceArea.Name = "AvoidanceArea";
+		AddChild(_avoidanceArea);
+
+		CircleShape2D shape = new CircleShape2D();
+		shape.Radius = AvoidanceRadius;
+
+		CollisionShape2D collision = new CollisionShape2D();
+		collision.Shape = shape;
+		_avoidanceArea.AddChild(collision);
+
+		_avoidanceArea.AreaEntered += OnAreaEntered;
+		_avoidanceArea.AreaExited += OnAreaExited;
+	}
+
+	private void OnAreaEntered(Area2D area)
+	{
+		Node parent = area.GetParent();
+		if (parent is Unit unit && unit != this)
 		{
-			_nearbyUnits.Add(unit);
+			NearbyUnits.Add(unit);
+			_debugDrawer?.QueueRedraw();
 		}
 	}
 
-	private void OnUnitExited(Node2D body)
+	private void OnAreaExited(Area2D area)
 	{
-		if (body is Unit unit)
+		Node parent = area.GetParent();
+		if (parent is Unit unit)
 		{
-			_nearbyUnits.Remove(unit);
+			NearbyUnits.Remove(unit);
+			_debugDrawer?.QueueRedraw();
 		}
 	}
 
@@ -99,7 +121,6 @@ public partial class Unit : CharacterBody2D
 		_sprite2D.Texture = sprite;
 	}
 
-	// Public methods that delegate to MovementManager
 	public void SetAutoDirection(Vector2 direction) => _unitMovement?.SetAutoDirection(direction);
 	public void SetAutoMoving(bool value) => _unitMovement?.SetAutoMoving(value);
 	public void InitializeMovementArea(Vector2 movementArea, Vector2 spawnAreaCenter)
