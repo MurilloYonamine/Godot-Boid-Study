@@ -1,8 +1,10 @@
-[gd_scene load_steps=8 format=4 uid="uid://bvkiigngovdf0"]
+[gd_scene load_steps=10 format=4 uid="uid://bvkiigngovdf0"]
 
-[ext_resource type="PackedScene" uid="uid://dst86g5hs6n7f" path="res://Assets/Nodes/Unit/Unit.tscn" id="2_4hes5"]
 [ext_resource type="Texture2D" uid="uid://drhwty14pvxo1" path="res://Assets/Sprites/Fish Pack/fishpack-spritesheet.png" id="2_5b232"]
 [ext_resource type="Script" uid="uid://bauybrmjdb3hg" path="res://Assets/Scripts/UnitSpawner.cs" id="3_4hes5"]
+[ext_resource type="PackedScene" uid="uid://pgtjru5g0lgu" path="res://Assets/Nodes/Unit/UnitHeavy.tscn" id="3_5epfl"]
+[ext_resource type="PackedScene" uid="uid://dxnk531ya2v62" path="res://Assets/Nodes/Unit/UnitLight.tscn" id="4_phnvl"]
+[ext_resource type="PackedScene" uid="uid://brniga475p3sx" path="res://Assets/Nodes/Unit/UnitNormal.tscn" id="5_tep8a"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4hes5"]
 texture = ExtResource("2_5b232")
@@ -549,12 +551,12 @@ polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(-1158, -647, 1154, -643, 1154, 648, -1158, 648)])
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4hes5"]
-size = Vector2(4615, 1707)
+size = Vector2(3428, 1395)
 
 [node name="Root" type="Node2D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.25, 0.25)
+zoom = Vector2(0.335, 0.335)
 
 [node name="Scene" type="Node2D" parent="."]
 
@@ -579,12 +581,12 @@ navigation_polygon = SubResource("NavigationPolygon_wiojp")
 
 [node name="Spawner" type="Node2D" parent="." node_paths=PackedStringArray("_spawnArea")]
 script = ExtResource("3_4hes5")
-_unitScene = ExtResource("2_4hes5")
+_unitScenes = Array[PackedScene]([ExtResource("3_5epfl"), ExtResource("4_phnvl"), ExtResource("5_tep8a")])
 _spawnCount = 35
 _spawnArea = NodePath("Area2D")
 
 [node name="Area2D" type="Area2D" parent="Spawner"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Spawner/Area2D"]
-position = Vector2(0.5, -441.5)
+position = Vector2(7, -285.5)
 shape = SubResource("RectangleShape2D_4hes5")

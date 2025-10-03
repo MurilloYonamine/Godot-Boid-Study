@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://brniga475p3sx"]
+
+[ext_resource type="PackedScene" uid="uid://culwcgx2o643b" path="res://Assets/Nodes/Unit/UnitBase.tscn" id="1_lw26n"]
+
+[node name="UnitNormal" instance=ExtResource("1_lw26n")]
+Mass = 1.5

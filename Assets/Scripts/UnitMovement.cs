@@ -64,7 +64,7 @@ public class UnitMovement
 		combinedDirection = combinedDirection.Normalized();
 
 		// Apply smoothing to prevent sudden direction changes
-		_autoDirection = _autoDirection.Lerp(combinedDirection, 0.1f); // Smooth interpolation
+		_autoDirection = _autoDirection.Lerp(combinedDirection, 0.1f);
 
 		_unit.Velocity = _autoDirection * _speed;
 		_unit.MoveAndSlide();

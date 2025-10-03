@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public partial class DebugUnitDrawer : Node2D
 {
     // === DEBUG SETTINGS ===
-    private bool _showDebugGizmos = false;
+    private static bool _globalShowDebugGizmos = false;
 
     // === REFERENCES ===
     private Unit _parentUnit;
@@ -12,11 +12,14 @@ public partial class DebugUnitDrawer : Node2D
     public override void _Ready()
     {
         _parentUnit = GetParent<Unit>();
+        AddToGroup("debug_drawers");
     }
+
+    public void queue_redraw() => QueueRedraw();
 
     public override void _Process(double delta)
     {
-        if (_showDebugGizmos)
+        if (_globalShowDebugGizmos)
         {
             QueueRedraw();
         }
@@ -26,14 +29,14 @@ public partial class DebugUnitDrawer : Node2D
     {
         if (@event is InputEventKey keyEvent && keyEvent.Pressed && keyEvent.Keycode == Key.D)
         {
-            _showDebugGizmos = !_showDebugGizmos;
-            QueueRedraw();
+            _globalShowDebugGizmos = !_globalShowDebugGizmos;
+            GetTree().CallGroup("debug_drawers", "queue_redraw");
         }
     }
 
     public override void _Draw()
     {
-        if (!_showDebugGizmos || _parentUnit == null) return;
+        if (!_globalShowDebugGizmos || _parentUnit == null) return;
 
         DrawAvoidanceRadius();
         DrawNearbyUnitLines();

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://dxnk531ya2v62"]
+
+[ext_resource type="PackedScene" uid="uid://culwcgx2o643b" path="res://Assets/Nodes/Unit/UnitBase.tscn" id="1_e2bha"]
+[ext_resource type="Texture2D" uid="uid://byqot41jnqlam" path="res://Assets/Sprites/Fishes/Outline/fish_pink_outline.png" id="2_juuk5"]
+
+[node name="UnitLight" instance=ExtResource("1_e2bha")]
+_repulsionStrength = 1.0
+Mass = 0.5
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_juuk5")

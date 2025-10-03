@@ -1,84 +1,87 @@
 using Godot;
-using System.Collections.Generic;
 
 public partial class UnitSpawner : Node2D
 {
 	// === SPAWN SETTINGS ===
-	[Export] private PackedScene _unitScene;
+	[Export] private PackedScene[] _unitScenes;
 	[Export] private int _spawnCount = 10;
 	[Export] private Area2D _spawnArea;
-	[Export] private float _spawnMargin = 80f; 
+	[Export] private float _spawnMargin = 80f;
 
 	// === AREA DATA ===
-	private RectangleShape2D _shape;
 	private Vector2 _areaSize;
 	private Vector2 _areaPos;
 
 	public override void _Ready()
 	{
-		_shape = _spawnArea.GetNode<CollisionShape2D>("CollisionShape2D").Shape as RectangleShape2D;
-		_areaSize = _shape.Size;
+		var shape = _spawnArea.GetNode<CollisionShape2D>("CollisionShape2D").Shape as RectangleShape2D;
+		_areaSize = shape.Size;
 		_areaPos = _spawnArea.GlobalPosition;
 
-		// Use CallDeferred to create units after _Ready() completes
 		for (int i = 0; i < _spawnCount; i++)
 		{
-			CallDeferred(nameof(CreateUnit), GetSafeSpawnPosition());
+			CallDeferred(nameof(CreateUnit), GetSafeSpawnPosition(), Vector2.Zero);
 		}
 	}
 
 	public override void _Input(InputEvent @event)
 	{
-		if (@event is InputEventKey keyEvent && keyEvent.Pressed && keyEvent.Keycode == Key.G)
+		if (@event is InputEventKey keyEvent && keyEvent.Pressed)
 		{
-			OnSpawnEnemyKeyPressed();
+			switch (keyEvent.Keycode)
+			{
+				case Key.G: OnSpawnEnemyKeyPressed(); break;
+				case Key.Key1: SpawnSpecificUnit(0, GetRandomSpawnPosition()); break;
+				case Key.Key2: SpawnSpecificUnit(1, GetRandomSpawnPosition()); break;
+				case Key.Key3: SpawnSpecificUnit(2, GetRandomSpawnPosition()); break;
+			}
 		}
 	}
 
 	private Vector2 GetSafeSpawnPosition()
 	{
 		Vector2 safeAreaSize = _areaSize - new Vector2(_spawnMargin * 2, _spawnMargin * 2);
-		
-		Vector2 randomOffset = new Vector2(
-			(float)GD.RandRange(-safeAreaSize.X / 2, safeAreaSize.X / 2),
-			(float)GD.RandRange(-safeAreaSize.Y / 2, safeAreaSize.Y / 2)
-		);
-		Vector2 spawnPos = _areaPos + randomOffset;
-		
-		return spawnPos;
+		return GetRandomPositionInArea(safeAreaSize);
 	}
 
-	private Vector2 GetRandomSpawnPosition()
+	private Vector2 GetRandomSpawnPosition() => GetRandomPositionInArea(_areaSize);
+
+	private Vector2 GetRandomPositionInArea(Vector2 areaSize)
 	{
 		Vector2 randomOffset = new Vector2(
-			(float)GD.RandRange(-_areaSize.X / 2, _areaSize.X / 2),
-			(float)GD.RandRange(-_areaSize.Y / 2, _areaSize.Y / 2)
+			(float)GD.RandRange(-areaSize.X / 2, areaSize.X / 2),
+			(float)GD.RandRange(-areaSize.Y / 2, areaSize.Y / 2)
 		);
-		Vector2 spawnPos = _areaPos + randomOffset;
-		
-		return spawnPos;
+		return _areaPos + randomOffset;
 	}
 
-	private void CreateUnit(Vector2 position)
+	private PackedScene GetRandomUnitScene()
 	{
-		Unit unit = _unitScene.Instantiate() as Unit;
+		if (_unitScenes == null || _unitScenes.Length == 0) return null;
+
+		int randomIndex = GD.RandRange(0, _unitScenes.Length - 1);
+		return _unitScenes[randomIndex];
+	}
+
+	private void CreateUnit(Vector2 position, Vector2 direction = default)
+	{
+		PackedScene sceneToSpawn = GetRandomUnitScene();
+		if (sceneToSpawn == null) return;
+
+		Unit unit = sceneToSpawn.Instantiate() as Unit;
 		unit.GlobalPosition = position;
-		unit.Visible = true;
-		
 		GetParent().AddChild(unit);
-		
-		// Initialize movement after Unit is in the scene tree
-		CallDeferred(nameof(InitializeUnitMovement), unit, position, Vector2.Zero);
+
+		CallDeferred(nameof(InitializeUnitMovement), unit, direction);
 	}
 
-	private void InitializeUnitMovement(Unit unit, Vector2 position, Vector2 direction)
+	private void InitializeUnitMovement(Unit unit, Vector2 direction)
 	{
-		if (!IsInstanceValid(unit)) return; 
-		
+		if (!IsInstanceValid(unit)) return;
+
 		unit.InitializeMovementArea(_areaSize, _areaPos);
 		unit.SetAutoMoving(true);
-		
-		// Set custom direction if provided, otherwise use random
+
 		if (direction != Vector2.Zero)
 		{
 			unit.SetAutoDirection(direction);
@@ -87,23 +90,28 @@ public partial class UnitSpawner : Node2D
 
 	public void OnSpawnEnemyKeyPressed()
 	{
-		float outsideOffsetX = 100f;
-		float outsideOffsetY = 0f;
-		Vector2 outsidePosition = _areaPos + new Vector2(_areaSize.X / 2 + outsideOffsetX, outsideOffsetY);
-		
-		// Use CallDeferred to avoid potential issues
-		CallDeferred(nameof(CreateEnemyUnit), outsidePosition);
+		Vector2 outsidePosition = _areaPos + new Vector2(_areaSize.X / 2 + 100f, 0f);
+		Vector2 directionToCenter = (_areaPos - outsidePosition).Normalized();
+
+		CallDeferred(nameof(CreateUnit), outsidePosition, directionToCenter);
 	}
 
-	private void CreateEnemyUnit(Vector2 position)
+	public void SpawnSpecificUnit(int unitIndex, Vector2 position)
 	{
-		Unit unit = _unitScene.Instantiate() as Unit;
+		if (unitIndex >= 0 && unitIndex < _unitScenes.Length)
+		{
+			CallDeferred(nameof(CreateSpecificUnitByIndex), unitIndex, position);
+		}
+	}
+
+	private void CreateSpecificUnitByIndex(int unitIndex, Vector2 position)
+	{
+		if (unitIndex < 0 || unitIndex >= _unitScenes.Length || _unitScenes[unitIndex] == null) return;
+		
+		Unit unit = _unitScenes[unitIndex].Instantiate() as Unit;
 		unit.GlobalPosition = position;
-		unit.Visible = true;
-		
 		GetParent().AddChild(unit);
-		
-		Vector2 directionToCenter = (_areaPos - position).Normalized();
-		CallDeferred(nameof(InitializeUnitMovement), unit, position, directionToCenter);
+
+		CallDeferred(nameof(InitializeUnitMovement), unit, Vector2.Zero);
 	}
 }

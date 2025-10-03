@@ -14,22 +14,23 @@ public partial class Unit : CharacterBody2D
 
 	// === VISUAL COMPONENTS ===
 	private Sprite2D _sprite2D;
-	private SpriteManager _spriteManager;
+	// private SpriteManager _spriteManager;
 
 	// === BOID AVOIDANCE ===
 	private Area2D _avoidanceArea;
 	public List<Unit> NearbyUnits { get; private set; } = new List<Unit>();
 	public Vector2 AvoidanceDirection { get; private set; } = Vector2.Zero;
 	public float AvoidanceRadius { get; private set; } = 60f;
+	public float _repulsionStrength { get; private set; } = 2.0f;
+	[Export] public float Mass { get; private set; } = 1.0f;
 
 	private const float INTERVAL_TIMER = 0.2f;
 	private float _avoidanceTimer = 0f;
-
-	[Export] private float _repulsionStrength = 1.0f;
 	private BoidBehavior _boidBehavior;
 
 	// === DEBUG VISUALIZATION ===
 	private DebugUnitDrawer _debugDrawer;
+
 
 	public override void _Ready()
 	{
@@ -40,9 +41,9 @@ public partial class Unit : CharacterBody2D
 		_unitMovement = new UnitMovement(this, _agent, _sprite2D, _speed);
 		_unitMovement.SetRandomDirection();
 
-		_spriteManager = new SpriteManager();
-		_spriteManager.LoadSprites();
-		AssignRandomSprite();
+		// _spriteManager = new SpriteManager();
+		// _spriteManager.LoadSprites();
+		// AssignRandomSprite();
 
 		_boidBehavior = new BoidBehavior(_repulsionStrength, AvoidanceRadius);
 
@@ -67,11 +68,12 @@ public partial class Unit : CharacterBody2D
 
 	private void CalculateAvoidance()
 	{
-		AvoidanceDirection = _boidBehavior.CalculateAvoidanceVector(GlobalPosition, NearbyUnits);
+		AvoidanceDirection = _boidBehavior.CalculateAvoidanceVector(GlobalPosition, this, NearbyUnits);
 	}
 
 	public override void _Input(InputEvent @event)
 	{
+		// Handle mouse click for manual navigation
 		if (@event is InputEventMouseButton mouseEvent && !mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Left)
 		{
 			_unitMovement.HandleMouseNavigation(GetGlobalMousePosition());
@@ -114,12 +116,12 @@ public partial class Unit : CharacterBody2D
 		}
 	}
 
-	private void AssignRandomSprite()
-	{
-		Texture2D sprite = _spriteManager.GetRandomSprite();
-		if (sprite == null) return;
-		_sprite2D.Texture = sprite;
-	}
+	// private void AssignRandomSprite()
+	// {
+	// 	Texture2D sprite = _spriteManager.GetRandomSprite();
+	// 	if (sprite == null) return;
+	// 	_sprite2D.Texture = sprite;
+	// }
 
 	public void SetAutoDirection(Vector2 direction) => _unitMovement?.SetAutoDirection(direction);
 	public void SetAutoMoving(bool value) => _unitMovement?.SetAutoMoving(value);

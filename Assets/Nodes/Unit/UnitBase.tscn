@@ -1,15 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://dst86g5hs6n7f"]
+[gd_scene load_steps=4 format=3 uid="uid://culwcgx2o643b"]
 
 [ext_resource type="Script" uid="uid://dpupr2fbmk1vk" path="res://Assets/Scripts/Unit.cs" id="1_h75yp"]
 [ext_resource type="Texture2D" uid="uid://pbh5r5rdtsh2" path="res://Assets/Sprites/Fishes/No Outline/fish_red.png" id="2_xoaow"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_xoaow"]
-radius = 70.028564
+radius = 56.008926
 
-[node name="Boid" type="CharacterBody2D"]
+[node name="UnitBase" type="CharacterBody2D"]
 script = ExtResource("1_h75yp")
-_avoidanceRadius = 90.0
-_repulsionStrength = 3.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_xoaow")
