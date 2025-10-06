@@ -9,6 +9,11 @@ public partial class DebugUnitDrawer : Node2D
     // === COMPONENT REFERENCES ===
     private Unit _parentUnit;
 
+    // === DEBUG DRAWING CONSTANTS ===
+    private const int ARC_SEGMENTS = 32;
+    private const float ARC_LINE_WIDTH = 2.0f;
+    private const float CONNECTION_LINE_WIDTH = 3.0f;
+
     public override void _Ready()
     {
         _parentUnit = GetParent<Unit>();
@@ -45,7 +50,7 @@ public partial class DebugUnitDrawer : Node2D
     private void DrawAvoidanceRadius()
     {
         float radius = _parentUnit.AvoidanceRadius;
-        DrawArc(Vector2.Zero, radius, 0, Mathf.Tau, 32, Colors.Blue, 2.0f);
+        DrawArc(Vector2.Zero, radius, 0, Mathf.Tau, ARC_SEGMENTS, Colors.Blue, ARC_LINE_WIDTH);
     }
 
     private void DrawNearbyUnitLines()
@@ -58,7 +63,7 @@ public partial class DebugUnitDrawer : Node2D
             {
                 Vector2 startPos = Vector2.Zero;
                 Vector2 endPos = unit.GlobalPosition - GlobalPosition;
-                DrawLine(startPos, endPos, Colors.Red, 3.0f);
+                DrawLine(startPos, endPos, Colors.Red, CONNECTION_LINE_WIDTH);
             }
         }
     }

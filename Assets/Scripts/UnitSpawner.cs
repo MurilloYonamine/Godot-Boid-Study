@@ -7,6 +7,7 @@ public partial class UnitSpawner : Node2D
 	[Export] private int _spawnCount = 10;
 	[Export] private Area2D _spawnArea;
 	[Export] private float _spawnMargin = 80f;
+	private const float ENEMY_SPAWN_DISTANCE = 100f;
 
 	// === AREA DATA ===
 	private Vector2 _areaSize;
@@ -94,11 +95,10 @@ public partial class UnitSpawner : Node2D
 			unit.SetAutoDirection(direction);
 		}
 	}
-
 	public void OnSpawnEnemyKeyPressed()
 	{
 		// Spawn enemy from outside area
-		Vector2 outsidePosition = _areaPos + new Vector2(_areaSize.X / 2 + 100f, 0f);
+		Vector2 outsidePosition = _areaPos + new Vector2(_areaSize.X / 2 + ENEMY_SPAWN_DISTANCE, 0f);
 		Vector2 directionToCenter = (_areaPos - outsidePosition).Normalized();
 
 		CallDeferred(nameof(CreateUnit), outsidePosition, directionToCenter);

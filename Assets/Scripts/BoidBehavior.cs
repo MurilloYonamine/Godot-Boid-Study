@@ -55,9 +55,12 @@ public class BoidBehavior
 
     private float CalculateDistanceFactor(Vector2 position, Vector2 targetPosition)
     {
+        const float BASE_DISTANCE_FACTOR = 1.0f;
+        const float DISTANCE_FALLOFF_EXPONENT = 0.5f;
+        
         float distance = position.DistanceTo(targetPosition);
-        float distanceFactor = 1.0f - (distance / _detectionRadius);
-        return Mathf.Pow(distanceFactor, 0.5f);
+        float distanceFactor = BASE_DISTANCE_FACTOR - (distance / _detectionRadius);
+        return Mathf.Pow(distanceFactor, DISTANCE_FALLOFF_EXPONENT);
     }
 
     private float CalculateMassInfluence(float selfMass, float otherMass)

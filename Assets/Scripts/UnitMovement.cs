@@ -18,7 +18,6 @@ public class UnitMovement
 	private Vector2 _spawnAreaCenter;
 	private bool _isInitialized = false;
 
-	// === BOID BEHAVIOR INTEGRATION ===
 	private Unit _unitReference;
 
 	public UnitMovement(CharacterBody2D unit, NavigationAgent2D agent, Sprite2D sprite2D, float speed)
@@ -55,17 +54,22 @@ public class UnitMovement
 
 	private void HandleAutoMovement()
 	{
-		// === BOID AVOIDANCE INTEGRATION ===
+		const float DIRECTION_SMOOTHING = 0.1f;
+		const float AVOIDANCE_STRENGTH = 0.5f;
+
+		// BOID INTEGRATION
 		Vector2 avoidanceForce = Vector2.Zero;
 		if (_unitReference != null)
+		{
 			avoidanceForce = _unitReference.AvoidanceDirection;
-			
+		}
+
 		// Blend autonomous movement with avoidance behavior
-		Vector2 combinedDirection = _autoDirection + avoidanceForce * 0.5f; // Reduce avoidance strength
+		Vector2 combinedDirection = _autoDirection + avoidanceForce * AVOIDANCE_STRENGTH;
 		combinedDirection = combinedDirection.Normalized();
 
 		// Smooth direction changes to prevent jittery movement
-		_autoDirection = _autoDirection.Lerp(combinedDirection, 0.1f);
+		_autoDirection = _autoDirection.Lerp(combinedDirection, DIRECTION_SMOOTHING);
 
 		// === MOVEMENT EXECUTION ===
 		_unit.Velocity = _autoDirection * _speed;
@@ -92,7 +96,7 @@ public class UnitMovement
 		{
 			shouldFlipX = true;
 		}
-		
+
 		if (_unit.GlobalPosition.Y <= areaMin.Y + margin || _unit.GlobalPosition.Y >= areaMax.Y - margin)
 		{
 			shouldFlipY = true;
@@ -109,7 +113,7 @@ public class UnitMovement
 		if (_agent.IsNavigationFinished())
 		{
 			// Preserve current direction for smooth transition
-			if (_unit.Velocity != Vector2.Zero) 
+			if (_unit.Velocity != Vector2.Zero)
 				_autoDirection = _unit.Velocity.Normalized();
 
 			// Switch back to autonomous movement
@@ -121,7 +125,7 @@ public class UnitMovement
 		// Path Following with avoidence
 		Vector2 difference = _agent.GetNextPathPosition() - _unit.GlobalPosition;
 		Vector2 direction = difference.Normalized();
-		
+
 		// Integrate boid avoidance during navigation
 		Vector2 avoidanceForce = Vector2.Zero;
 		if (_unitReference != null)
@@ -129,7 +133,7 @@ public class UnitMovement
 
 		// Combine navigation direction with avoidance
 		Vector2 combinedDirection = (direction + avoidanceForce * 0.3f).Normalized();
-		
+
 		// Execute navigation movement
 		_unit.Velocity = combinedDirection * _speed;
 		_unit.MoveAndSlide();
@@ -140,22 +144,21 @@ public class UnitMovement
 	public void HandleMouseNavigation(Vector2 mousePosition)
 	{
 		if (!_isInitialized) return;
-		
+
 		// Set navigation target to clicked position
 		Vector2 point = NavigationServer2D.MapGetClosestPoint(_navigationMap, mousePosition);
 		_agent.TargetPosition = point;
 		_isAutoMoving = false;
 	}
 
-	// === PUBLIC CONFIGURATION METHODS ===
 	public void SetAutoDirection(Vector2 direction) => _autoDirection = direction.Normalized();
 	public void SetAutoMoving(bool value) => _isAutoMoving = value;
-	
+
 	public void InitializeMovementArea(Vector2 movementArea, Vector2 spawnAreaCenter)
 	{
 		_movementArea = movementArea;
 		_spawnAreaCenter = spawnAreaCenter;
-		_isInitialized = true; 
+		_isInitialized = true;
 	}
 
 }
