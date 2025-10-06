@@ -62,19 +62,25 @@ public class BoidBehavior
 
     private float CalculateMassInfluence(float selfMass, float otherMass)
     {
+        const float HEAVIER_UNIT_EXPONENT = 1.5f;
+        const float LIGHTER_UNIT_EXPONENT = 0.7f;
+        const float MAX_INFLUENCE = 5.0f;
+        const float MIN_INFLUENCE = 0.1f;
+        const float BASE_INFLUENCE = 1.0f;
+        
         float massRatio = otherMass / selfMass;
         float influence = 0;
 
-        if (massRatio > 1.0f)
+        if (massRatio > BASE_INFLUENCE)
         {
             // Heavier units cause stronger avoidance response
-            influence = Mathf.Pow(massRatio, 1.5f);
-            return Mathf.Clamp(influence, 1.0f, 5.0f);
+            influence = Mathf.Pow(massRatio, HEAVIER_UNIT_EXPONENT);
+            return Mathf.Clamp(influence, BASE_INFLUENCE, MAX_INFLUENCE);
         }
 
         // Lighter units cause weaker avoidance response
-        influence = Mathf.Pow(massRatio, 0.7f);
-        return Mathf.Clamp(influence, 0.1f, 1.0f);
+        influence = Mathf.Pow(massRatio, LIGHTER_UNIT_EXPONENT);
+        return Mathf.Clamp(influence, MIN_INFLUENCE, BASE_INFLUENCE);
     }
 
 }
