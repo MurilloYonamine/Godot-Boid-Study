@@ -14,9 +14,8 @@ public partial class Unit : CharacterBody2D
 
 	// === VISUAL COMPONENTS ===
 	private Sprite2D _sprite2D;
-	// private SpriteManager _spriteManager;
 
-	// === BOID AVOIDANCE ===
+	// === BOID BEHAVIOR SYSTEM ===
 	private Area2D _avoidanceArea;
 	public List<Unit> NearbyUnits { get; private set; } = new List<Unit>();
 	public Vector2 AvoidanceDirection { get; private set; } = Vector2.Zero;
@@ -24,6 +23,7 @@ public partial class Unit : CharacterBody2D
 	public float _repulsionStrength { get; private set; } = 2.0f;
 	[Export] public float Mass { get; private set; } = 1.0f;
 
+	// === TIMING CONTROL ===
 	private const float INTERVAL_TIMER = 0.2f;
 	private float _avoidanceTimer = 0f;
 	private BoidBehavior _boidBehavior;
@@ -41,10 +41,6 @@ public partial class Unit : CharacterBody2D
 		_unitMovement = new UnitMovement(this, _agent, _sprite2D, _speed);
 		_unitMovement.SetRandomDirection();
 
-		// _spriteManager = new SpriteManager();
-		// _spriteManager.LoadSprites();
-		// AssignRandomSprite();
-
 		_boidBehavior = new BoidBehavior(_repulsionStrength, AvoidanceRadius);
 
 		SetupAvoidanceArea();
@@ -57,6 +53,7 @@ public partial class Unit : CharacterBody2D
 	{
 		_avoidanceTimer += (float)delta;
 
+		// Calculate avoidance at intervals for performance (reddit)
 		if (_avoidanceTimer >= INTERVAL_TIMER)
 		{
 			CalculateAvoidance();
@@ -73,7 +70,7 @@ public partial class Unit : CharacterBody2D
 
 	public override void _Input(InputEvent @event)
 	{
-		// Handle mouse click for manual navigation
+		// === MANUAL NAVIGATION CONTROL ===
 		if (@event is InputEventMouseButton mouseEvent && !mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Left)
 		{
 			_unitMovement.HandleMouseNavigation(GetGlobalMousePosition());
@@ -81,10 +78,12 @@ public partial class Unit : CharacterBody2D
 	}
 	private void SetupAvoidanceArea()
 	{
+		// Create detection area for nearby units
 		_avoidanceArea = new Area2D();
 		_avoidanceArea.Name = "AvoidanceArea";
 		AddChild(_avoidanceArea);
 
+		// Setup circular collision shape
 		CircleShape2D shape = new CircleShape2D();
 		shape.Radius = AvoidanceRadius;
 
@@ -92,12 +91,14 @@ public partial class Unit : CharacterBody2D
 		collision.Shape = shape;
 		_avoidanceArea.AddChild(collision);
 
+		// Connect area detection events
 		_avoidanceArea.AreaEntered += OnAreaEntered;
 		_avoidanceArea.AreaExited += OnAreaExited;
 	}
 
 	private void OnAreaEntered(Area2D area)
 	{
+		// Add detected unit to nearby list
 		Node parent = area.GetParent();
 		if (parent is Unit unit && unit != this)
 		{
@@ -108,6 +109,7 @@ public partial class Unit : CharacterBody2D
 
 	private void OnAreaExited(Area2D area)
 	{
+		// Remove unit from nearby list when out of range
 		Node parent = area.GetParent();
 		if (parent is Unit unit)
 		{
@@ -115,14 +117,6 @@ public partial class Unit : CharacterBody2D
 			_debugDrawer?.QueueRedraw();
 		}
 	}
-
-	// private void AssignRandomSprite()
-	// {
-	// 	Texture2D sprite = _spriteManager.GetRandomSprite();
-	// 	if (sprite == null) return;
-	// 	_sprite2D.Texture = sprite;
-	// }
-
 	public void SetAutoDirection(Vector2 direction) => _unitMovement?.SetAutoDirection(direction);
 	public void SetAutoMoving(bool value) => _unitMovement?.SetAutoMoving(value);
 	public void InitializeMovementArea(Vector2 movementArea, Vector2 spawnAreaCenter)

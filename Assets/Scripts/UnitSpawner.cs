@@ -14,10 +14,11 @@ public partial class UnitSpawner : Node2D
 
 	public override void _Ready()
 	{
-		var shape = _spawnArea.GetNode<CollisionShape2D>("CollisionShape2D").Shape as RectangleShape2D;
+		RectangleShape2D shape = _spawnArea.GetNode<CollisionShape2D>("CollisionShape2D").Shape as RectangleShape2D;
 		_areaSize = shape.Size;
 		_areaPos = _spawnArea.GlobalPosition;
 
+		// Spawn initial units
 		for (int i = 0; i < _spawnCount; i++)
 		{
 			CallDeferred(nameof(CreateUnit), GetSafeSpawnPosition(), Vector2.Zero);
@@ -40,6 +41,7 @@ public partial class UnitSpawner : Node2D
 
 	private Vector2 GetSafeSpawnPosition()
 	{
+		// Calculate safe area with margin
 		Vector2 safeAreaSize = _areaSize - new Vector2(_spawnMargin * 2, _spawnMargin * 2);
 		return GetRandomPositionInArea(safeAreaSize);
 	}
@@ -48,6 +50,7 @@ public partial class UnitSpawner : Node2D
 
 	private Vector2 GetRandomPositionInArea(Vector2 areaSize)
 	{
+		// Generate random position within area
 		Vector2 randomOffset = new Vector2(
 			(float)GD.RandRange(-areaSize.X / 2, areaSize.X / 2),
 			(float)GD.RandRange(-areaSize.Y / 2, areaSize.Y / 2)
@@ -59,12 +62,14 @@ public partial class UnitSpawner : Node2D
 	{
 		if (_unitScenes == null || _unitScenes.Length == 0) return null;
 
+		// Select random unit type
 		int randomIndex = GD.RandRange(0, _unitScenes.Length - 1);
 		return _unitScenes[randomIndex];
 	}
 
 	private void CreateUnit(Vector2 position, Vector2 direction = default)
 	{
+		// Instantiate unit
 		PackedScene sceneToSpawn = GetRandomUnitScene();
 		if (sceneToSpawn == null) return;
 
@@ -72,6 +77,7 @@ public partial class UnitSpawner : Node2D
 		unit.GlobalPosition = position;
 		GetParent().AddChild(unit);
 
+		// Initialize unit behavior
 		CallDeferred(nameof(InitializeUnitMovement), unit, direction);
 	}
 
@@ -79,6 +85,7 @@ public partial class UnitSpawner : Node2D
 	{
 		if (!IsInstanceValid(unit)) return;
 
+		// Setup unit movement parameters
 		unit.InitializeMovementArea(_areaSize, _areaPos);
 		unit.SetAutoMoving(true);
 
@@ -90,6 +97,7 @@ public partial class UnitSpawner : Node2D
 
 	public void OnSpawnEnemyKeyPressed()
 	{
+		// Spawn enemy from outside area
 		Vector2 outsidePosition = _areaPos + new Vector2(_areaSize.X / 2 + 100f, 0f);
 		Vector2 directionToCenter = (_areaPos - outsidePosition).Normalized();
 
@@ -98,6 +106,7 @@ public partial class UnitSpawner : Node2D
 
 	public void SpawnSpecificUnit(int unitIndex, Vector2 position)
 	{
+		// Validate index and spawn specific unit
 		if (unitIndex >= 0 && unitIndex < _unitScenes.Length)
 		{
 			CallDeferred(nameof(CreateSpecificUnitByIndex), unitIndex, position);
@@ -106,8 +115,10 @@ public partial class UnitSpawner : Node2D
 
 	private void CreateSpecificUnitByIndex(int unitIndex, Vector2 position)
 	{
+		// Safety check for unit index
 		if (unitIndex < 0 || unitIndex >= _unitScenes.Length || _unitScenes[unitIndex] == null) return;
 		
+		// Instantiate specific unit type
 		Unit unit = _unitScenes[unitIndex].Instantiate() as Unit;
 		unit.GlobalPosition = position;
 		GetParent().AddChild(unit);

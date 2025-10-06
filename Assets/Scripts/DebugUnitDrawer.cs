@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 public partial class DebugUnitDrawer : Node2D
 {
-    // === DEBUG SETTINGS ===
+    // === DEBUG VISUALIZATION CONTROL ===
     private static bool _globalShowDebugGizmos = false;
 
-    // === REFERENCES ===
+    // === COMPONENT REFERENCES ===
     private Unit _parentUnit;
 
     public override void _Ready()
@@ -50,6 +50,7 @@ public partial class DebugUnitDrawer : Node2D
 
     private void DrawNearbyUnitLines()
     {
+        // Draw connection lines to detected nearby units
         List<Unit> nearbyUnits = _parentUnit.NearbyUnits;
         foreach (Unit unit in nearbyUnits)
         {

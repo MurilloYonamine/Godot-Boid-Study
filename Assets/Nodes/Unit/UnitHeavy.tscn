@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://cpq0ssyhtcolx" path="res://Assets/Sprites/Fishes/Outline/fish_brown_outline.png" id="2_fc4le"]
 
 [node name="UnitHeavy" instance=ExtResource("1_j833r")]
-_repulsionStrength = 5.0
 Mass = 20.0
 
 [node name="Sprite2D" parent="." index="0"]

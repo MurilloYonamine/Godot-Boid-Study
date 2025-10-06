@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class SpriteManager
 {
+    // === SPRITE STORAGE ===
     private List<Texture2D> _fishSprites = new List<Texture2D>();
     private Random _random = new Random();
 
@@ -17,6 +18,7 @@ public class SpriteManager
 
     private void LoadSpritesFromDirectory(string directoryPath)
     {
+        // Acess directory
         DirAccess directory = DirAccess.Open(directoryPath);
         
         if (directory == null)
@@ -25,6 +27,7 @@ public class SpriteManager
             return;
         }
 
+        // File discovery
         directory.ListDirBegin();
         string fileName = directory.GetNext();
 
@@ -56,10 +59,5 @@ public class SpriteManager
         
         int index = _random.Next(_fishSprites.Count);
         return _fishSprites[index];
-    }
-
-    public int GetSpriteCount()
-    {
-        return _fishSprites.Count;
     }
 }
