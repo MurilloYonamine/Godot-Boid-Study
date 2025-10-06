@@ -93,7 +93,9 @@ Handles sprite loading and assignment:
 - **D Key:** Toggle debug visualization (shows avoidance radius and connections)
 
 ## Preview
-![Boids Behavior Demo](Media/boids-demo.gif)
+<div align="center">
+    <img src="Media/boids-demo.gif" alt="Boids Behavior Demo" width="100%">
+</div>
 
 ## Credits
 
