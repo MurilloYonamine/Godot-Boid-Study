@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+    tags:
+        - 'v*'
 
 jobs:
   export_game:
@@ -26,11 +28,12 @@ jobs:
         relative_project_path: ./
         archive_output: true
 
-    # === Create a release with the exported game as an artifact ===
-    - name: create release
+    # === Release Action ===
+    - name: release
       uses: ncipollo/release-action@v1.18.0
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        generateReleaseNotes: true
-        tag: ${{ github.ref_name }}
         artifacts: ${{ steps.export.outputs.archive_directory }}/*
+        tag: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        body: "Automated release of the exported game from commit ${{ github.sha }}."
+        token: ${{ secrets.GITHUB_TOKEN }}
