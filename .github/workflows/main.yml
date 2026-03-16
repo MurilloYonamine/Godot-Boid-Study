@@ -1,8 +1,7 @@
 # === Run workflow on every push to main branch
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 # === Define environment variables for the workflow ===
 env:
