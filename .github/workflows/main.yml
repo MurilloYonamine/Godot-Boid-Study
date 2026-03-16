@@ -4,8 +4,9 @@ on:
     branches:
       - main
     tags:
-        - 'v*'
+        - 'v*.*.*'
 
+    # === Run workflow on pull request to main branch
 jobs:
   export_game:
     runs-on: ubuntu-latest
