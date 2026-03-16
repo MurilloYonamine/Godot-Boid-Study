@@ -1,8 +1,8 @@
-# Whenever a tag push matching pattern "v*" then run the job
-on: 
+# === Run workflow on every push to main branch ===
+on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
 
 jobs:
   export_game:
@@ -11,9 +11,12 @@ jobs:
       contents: write
     name: Export Game
     steps:
+
+    # === Checkout the repository ===
     - name: checkout
       uses: actions/checkout@v5
   
+    # === Export the game using firebelley/godot-export action ===
     - name: export game
       id: export
       uses: firebelley/godot-export@v7.0.0
@@ -23,6 +26,7 @@ jobs:
         relative_project_path: ./
         archive_output: true
 
+    # === Create a release with the exported game as an artifact ===
     - name: create release
       uses: ncipollo/release-action@v1.18.0
       with:
