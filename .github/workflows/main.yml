@@ -33,27 +33,10 @@ jobs:
             relative_project_path: ./
             archive_output: true
 
-    # === Create Tag ===
-      - name: Create Tag
-        if: startsWith(github.ref, 'refs/heads/')
-        run: |
-          TAG="v${{ github.run_number }}"
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git tag "$TAG"
-            git push origin "$TAG"
-          fi
-
-    # === Generate grouped changelog ===
+    # === Generate changelog ===
       - name: Generate Changelog
         id: changelog
         uses: mikepenz/release-changelog-builder-action@v4
-        with:
-            configuration: |
-                template: |
-                  ## Changes
-                  {{CHANGELOG}}
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
