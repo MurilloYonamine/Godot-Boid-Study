@@ -18,7 +18,7 @@ jobs:
         contents: write
     name: Export Game
     steps:
-        
+
       # === Checkout the repository ===
       - name: checkout
         uses: actions/checkout@v5
@@ -35,10 +35,11 @@ jobs:
 
       # === Release Action ===
       - name: release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1.18.0
         with:
             artifacts: ${{ steps.export.outputs.archive_directory }}/*
             tag: ${{ github.ref_name }}
             name: Release ${{ github.ref_name }}
-            generateReleaseNotes: true 
+            generateReleaseNotes: true
             token: ${{ secrets.GITHUB_TOKEN }}
