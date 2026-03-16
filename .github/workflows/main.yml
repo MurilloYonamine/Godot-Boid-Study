@@ -1,12 +1,16 @@
-# === Run workflow on every push to main branch 
+# === Run workflow on every push to main branch
 on:
   push:
     branches:
       - main
     tags:
-        - 'v*.*.*'
+      - 'v*.*.*'
 
-    # === Run workflow on pull request to main branch
+# === Define environment variables for the workflow ===
+env:
+  GODOT_VERSION: 4.6.1-stable
+
+# === Define the job to export the game and create a release ===
 jobs:
   export_game:
     runs-on: ubuntu-latest
@@ -14,27 +18,26 @@ jobs:
       contents: write
     name: Export Game
     steps:
+      # === Checkout the repository ===
+      - name: checkout
+        uses: actions/checkout@v5
 
-    # === Checkout the repository ===
-    - name: checkout
-      uses: actions/checkout@v5
-  
-    # === Export the game using firebelley/godot-export action ===
-    - name: export game
-      id: export
-      uses: firebelley/godot-export@v7.0.0
-      with:
-        godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.6.1-stable/Godot_v4.6.1-stable_linux.x86_64.zip
-        godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.6.1-stable/Godot_v4.6.1-stable_export_templates.tpz
-        relative_project_path: ./
-        archive_output: true
+      # === Export the game using firebelley/godot-export action ===
+      - name: export game
+        id: export
+        uses: firebelley/godot-export@v7.0.0
+        with:
+          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip
+          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz
+          relative_project_path: ./
+          archive_output: true
 
-    # === Release Action ===
-    - name: release
-      uses: ncipollo/release-action@v1.18.0
-      with:
-        artifacts: ${{ steps.export.outputs.archive_directory }}/*
-        tag: v${{ github.run_number }}
-        name: Release v${{ github.run_number }}
-        body: "Automated release of the exported game from commit ${{ github.sha }}."
-        token: ${{ secrets.GITHUB_TOKEN }}
+      # === Release Action ===
+      - name: release
+        uses: ncipollo/release-action@v1.18.0
+        with:
+          artifacts: ${{ steps.export.outputs.archive_directory }}/*
+          tag: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body: "Automated release of the exported game from commit ${{ github.sha }}."
+          token: ${{ secrets.GITHUB_TOKEN }}
